@@ -391,7 +391,7 @@ class OAuth2Server {
           const query = new URLSearchParams({
             code: code.authorizationCode,
             user: req.user.id,
-            state: req.body.state
+            state: state
           })
 
           const finalRedirectUri = `${req.body.redirect_uri}?${query}`
