@@ -238,7 +238,12 @@ class OAuth2Server {
     const getValidatedRedirectUri = (req, res, client) => {
       const redirectUris = [].concat(client.redirectUris)
       const redirectUri = req.method.toLowerCase() === 'get' ? req.query.redirect_uri : req.body.redirect_uri
-      if (redirectUris.indexOf(redirectUri) === -1) {
+      const myHostname = new URL(redirectUri);
+      const myDomainRoot = myHostname.hostname.split('.').slice(-2).join('.');
+      const found = redirectUris.find((element) => element.includes(`${myHostname.protocol}//*.${myDomainRoot}`));
+      if (found) {
+        // console.log(found);
+      } else if (redirectUris.indexOf(redirectUri) === -1) {
         return errorHandler(res, {
           error: 'invalid_request',
           description: `Invalid redirection uri ${redirectUri}`,
@@ -382,6 +387,7 @@ class OAuth2Server {
 
       return self.oauth.authorize(request, response, authorizeOptions)
         .then(bind(function (code) {
+          const state = req.body.state ? req.body.state : req.query.state;
           const query = new URLSearchParams({
             code: code.authorizationCode,
             user: req.user.id,
@@ -431,10 +437,11 @@ class OAuth2Server {
             'Cache-Control': 'no-store',
             Pragma: 'no-cache'
           })
+          const accessTokenLifetime = Math.floor((token.accessTokenExpiresAt - new Date()) / 1000);
           const body = JSON.stringify({
             access_token: token.accessToken,
             token_type: 'bearer',
-            expires_in: token.accessTokenExpiresAt,
+            expires_in: accessTokenLifetime,
             refresh_token: token.refreshToken
           })
           res.end(body)

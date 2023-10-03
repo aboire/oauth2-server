@@ -19,8 +19,8 @@ export const requiredAccessTokenPostParams = {
   grant_type: String,
   code: String,
   redirect_uri: String,
-  client_id: String,
-  client_secret: String,
+  client_id: Match.Maybe(String),
+  client_secret: Match.Maybe(String),
   state: Match.Maybe(String)
 }
 

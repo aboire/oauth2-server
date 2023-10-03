@@ -183,4 +183,28 @@ OAuthMeteorModel.prototype.grantTypeAllowed = async function (clientId, grantTyp
   return ['authorization_code', 'refresh_token'].includes(grantType)
 }
 
+/**
+ *
+ * @param redirectUri
+ * @param client
+ * @return {boolean}
+ */
+OAuthMeteorModel.prototype.validateRedirectUri = async function (redirectUri, client) {
+  this.log('[OAuth2Server]', 'MODEL validateRedirectUri (redirectUri:', redirectUri, ', client:', `${client.clientId})`);
+  const redirectUris = [].concat(client.redirectUris);
+
+  const myHostname = new URL(redirectUri);
+  const myDomainRoot = myHostname.hostname.split('.').slice(-2).join('.');
+  const found = redirectUris.find((element) => element.includes(`${myHostname.protocol}//*.${myDomainRoot}`));
+  if (found) {
+    this.log('valid redirect uri');
+  } else {
+    // console.log('no wild card');
+    if (redirectUris.indexOf(redirectUri) === -1) {
+      return false;
+    }
+  }
+  return true;
+};
+
 export const Model = OAuthMeteorModel
